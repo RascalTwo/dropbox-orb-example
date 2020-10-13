@@ -2,8 +2,35 @@ version: 2.1
 
 orbs:
   python: circleci/python@0.2.1
+  dropbox: rascaltwo/dropbox-orb@dev:alpha
+
+
+workflows:
+  main:
+    jobs:
+      - download-previous:
+          context: dropbox-context
+      - execute:
+          requires:
+            - download-previous
+      - upload-latest:
+          context: dropbox-context
+          requires:
+            - execute
 
 jobs:
+  download-previous:
+    executor: dropbox/default
+    steps:
+      - dropbox/download:
+          downloadpath: /appending.txt
+          filepath: ./appending.txt
+  upload-incremental:
+    executor: dropbox/default
+    steps:
+      - dropbox/upload:
+          uploadpath: /appending.txt
+          filepath: ./appending.txt
   execute:
     executor: python/default
     steps:
@@ -12,10 +39,14 @@ jobs:
       - python/install-deps
       - python/save-cache
       - run:
-          command: ./app.py
+          command: |
+            export NEW_FILENAME=./app.py
+            echo 'export NEW_FILENAME=$NEW_FILENAME' >> $BASH_ENV
+            echo "Created '$NEW_FILENAME'"
           name: Execute
-
-workflows:
-  main:
-    jobs:
-      - execute
+  upload-latest:
+    executor: dropbox/default
+    steps:
+      - dropbox/upload:
+          uploadpath: /$NEW_FILENAME
+          filepath: ./$NEW_FILENAME
