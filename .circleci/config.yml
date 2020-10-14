@@ -40,13 +40,14 @@ jobs:
       - python/save-cache
       - run:
           command: |
-            export NEW_FILENAME=./app.py
-            echo 'export NEW_FILENAME=$NEW_FILENAME' >> $BASH_ENV
-            echo "Created '$NEW_FILENAME'"
+            RES=$(./app.py)
+            export LAST_LINE=$(echo $RES | sed -n '1!p')
+            echo 'export NEW_FILENAME=$LAST_LINE' >> BASH_ENV
+            echo "$RES"
           name: Execute
   upload-latest:
     executor: dropbox/default
     steps:
       - dropbox/upload:
-          uploadpath: /$NEW_FILENAME
-          filepath: ./$NEW_FILENAME
+          uploadpath: /$LAST_LINE
+          filepath: ./$LAST_LINE
