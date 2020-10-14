@@ -23,14 +23,14 @@ jobs:
     executor: dropbox/default
     steps:
       - dropbox/download:
-          downloadpath: /appending.txt
-          filepath: ./appending.txt
+          downloadpath: /appending.csv
+          filepath: ./appending.csv
   upload-incremental:
     executor: dropbox/default
     steps:
       - dropbox/upload:
-          uploadpath: /appending.txt
-          filepath: ./appending.txt
+          uploadpath: /appending.csv
+          filepath: ./appending.csv
   execute:
     executor: python/default
     steps:
