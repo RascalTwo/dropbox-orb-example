@@ -17,6 +17,10 @@ workflows:
           context: dropbox-context
           requires:
             - execute
+      - upload-incremental:
+          context: dropbox-context
+          requires:
+            - execute
 
 jobs:
   download-previous:
@@ -25,12 +29,10 @@ jobs:
       - dropbox/download:
           downloadpath: /appending.csv
           filepath: ./appending.csv
-  upload-incremental:
-    executor: dropbox/default
-    steps:
-      - dropbox/upload:
-          uploadpath: /appending.csv
-          filepath: ./appending.csv
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ./
   execute:
     executor: python/default
     steps:
@@ -42,12 +44,24 @@ jobs:
           command: |
             RES=$(./app.py)
             export LAST_LINE=$(echo $RES | sed -n '1!p')
-            echo 'export NEW_FILENAME=$LAST_LINE' >> BASH_ENV
+            echo 'export FILE_PATH="./$LAST_LINE"' >> $BASH_ENV
+            echo 'export UPLOAD_PATH="/$LAST_LINE"' >> $BASH_ENV
+            source $BASH_ENV
+            echo "$BASH_ENV"
             echo "$RES"
           name: Execute
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ./
   upload-latest:
     executor: dropbox/default
     steps:
-      - dropbox/upload:
-          uploadpath: /$LAST_LINE
-          filepath: ./$LAST_LINE
+      - dropbox/upload
+    environment:
+      UPLOAD_PATH: /appending.csv
+      FILE_PATH: ./appending.csv
+  upload-incremental:
+    executor: dropbox/default
+    steps:
+      - dropbox/upload
