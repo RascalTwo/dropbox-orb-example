@@ -13,14 +13,14 @@ workflows:
       - execute:
           requires:
             - download-previous
-      - upload-latest:
-          context: dropbox-context
-          requires:
-            - execute
       - upload-incremental:
           context: dropbox-context
           requires:
             - execute
+      - upload-latest:
+          context: dropbox-context
+          requires:
+            - upload-incremental
 
 jobs:
   download-previous:
