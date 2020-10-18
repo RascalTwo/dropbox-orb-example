@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   python: circleci/python@0.2.1
-  dropbox: rascaltwo/dropbox-orb@dev:alpha
+  dropbox: rascaltwo/dropbox-orb@1
 
 
 workflows:
