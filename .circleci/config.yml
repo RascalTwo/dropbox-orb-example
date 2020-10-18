@@ -13,55 +13,45 @@ workflows:
       - execute:
           requires:
             - download-previous
-      - upload-incremental:
-          context: dropbox-context
-          requires:
-            - execute
       - upload-latest:
           context: dropbox-context
           requires:
-            - upload-incremental
+            - execute
 
 jobs:
   download-previous:
     executor: dropbox/default
     steps:
+      - attach_workspace:
+          at: ~/project
       - dropbox/download:
           downloadpath: /appending.csv
           filepath: ./appending.csv
       - persist_to_workspace:
-          root: ~/
+          root: ~/project
           paths:
-            - ./
+            - appending.csv
   execute:
     executor: python/default
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/project
       - python/load-cache
       - python/install-deps
       - python/save-cache
       - run:
-          command: |
-            RES=$(./app.py)
-            export LAST_LINE=$(echo $RES | sed -n '1!p')
-            echo 'export FILE_PATH="./$LAST_LINE"' >> $BASH_ENV
-            echo 'export UPLOAD_PATH="/$LAST_LINE"' >> $BASH_ENV
-            source $BASH_ENV
-            echo "$BASH_ENV"
-            echo "$RES"
+          command: ./app.py
           name: Execute
       - persist_to_workspace:
-          root: ~/
+          root: ~/project
           paths:
-            - ./
+            - appending.csv
   upload-latest:
     executor: dropbox/default
     steps:
-      - dropbox/upload
-    environment:
-      UPLOAD_PATH: /appending.csv
-      FILE_PATH: ./appending.csv
-  upload-incremental:
-    executor: dropbox/default
-    steps:
-      - dropbox/upload
+      - attach_workspace:
+          at: ~/project
+      - dropbox/upload:
+          uploadpath: /appending.csv
+          filepath: ./appending.csv
