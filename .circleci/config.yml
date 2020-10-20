@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   python: circleci/python@0.2.1
-  dropbox: rascaltwo/dropbox-orb@1
+  dropbox: rascaltwo/dropbox-orb@2
 
 
 workflows:
@@ -53,5 +53,6 @@ jobs:
       - attach_workspace:
           at: ~/project
       - dropbox/upload:
+          mode: overwrite
           uploadpath: /appending.csv
           filepath: ./appending.csv
